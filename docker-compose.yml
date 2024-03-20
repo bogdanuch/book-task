@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    command: npm run start:dev
+    env_file:
+      - .env
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - .:/user/src/app
+      - /user/src/app/node_modules
+    depends_on:
+      - database
+    networks:
+      default:
+        aliases:
+          - api
+
+  database:
+    container_name: ${POSTGRES_HOST}
+    image: postgres:alpine
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_EXPOSED_TCP_PORT}:${POSTGRES_TCP_PORT}"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - default
+
+networks:
+  default:
+
+volumes:
+  database:
+    driver: local
